@@ -99,11 +99,12 @@ class Tello:
         Read video stream using OpenCV VideoCapture
         """
 
-        i = 0
         while True:
             ret, frame = self.tello_video_stream.read()
             if ret:
                 self.frame = frame
+            else:
+                break
         self.tello_video_stream.release()
 
     # def _receive_video_thread(self):

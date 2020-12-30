@@ -10,6 +10,8 @@ import time
 from tello_pose import Tello_Pose
 from tello_cv import Tello_CV
 import platform
+import queue
+from statistics import median
 
 
 class TelloUI:
@@ -46,6 +48,9 @@ class TelloUI:
 
         # record the coordinates of the nodes in the pose recognition skeleton     
         self.points = []
+        self.median_area = None
+        self.area_window_size = 20
+        self.area_window = []
         # list of all the possible connections between skeleton nodes
         self.POSE_PAIRS = [[0, 1], [1, 2], [2, 3], [3, 4], [1, 5], [5, 6], [6, 7], [1, 14], [14, 8], [8, 9], [9, 10],
                            [14, 11], [11, 12], [12, 13]]
@@ -113,7 +118,13 @@ class TelloUI:
                 self.points.append(None)
                 # process pose-recognition                
                 if self.pose_mode:
-                    cmd, self.draw_skeleton_flag, self.points = self.my_tello_pose.detect(self.frame)
+                    cmd, self.draw_skeleton_flag, self.points, area = self.my_tello_pose.detect(self.frame)
+                    if self.draw_skeleton_flag:
+                        if len(self.area_window) == self.area_window_size:
+                            self.area_window.pop(0)
+                        self.area_window.append(area)
+                        self.median_area = median(self.area_window)
+                        print("Median area: {}".format(self.median_area))
 
                 # process command - map your motion to whatever Tello movement you want!
                 if cmd == 'moveback':
@@ -141,7 +152,7 @@ class TelloUI:
             if self.pose_mode:
                 # Draw the detected skeleton points
                 if self.draw_skeleton_flag:
-                    print(self.points[0])
+                    # print(self.points[0])
                     cv2.circle(frame, self.points[0], 8, (255, 255, 255), thickness=-1, lineType=cv2.FILLED)
 
             # transfer the format from frame to image         

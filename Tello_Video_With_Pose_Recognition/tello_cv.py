@@ -29,7 +29,7 @@ class Tello_CV:
         else:
             cX = -1
             cY = -1
-        return cX, cY
+        return cX, cY, M["m00"]
 
     def draw_circle(self, cX, cY, img):
         cv2.circle(img, (cX, cY), 5, (255, 255, 255), -1)
@@ -43,7 +43,7 @@ class Tello_CV:
         return cv2.resize(img, dsize=dim)
 
     def detect(self, frame):
-        cX, cY = self.get_mask_centroid(
+        cX, cY, area = self.get_mask_centroid(
             self.segment_body_part(frame, ['left_face', 'right_face']))
         points = []
         points.append((cX, cY))
@@ -52,4 +52,4 @@ class Tello_CV:
         else:
             draw_skeleton_flag = False
         cmd = "stay"
-        return cmd, draw_skeleton_flag, points
+        return cmd, draw_skeleton_flag, points, area
